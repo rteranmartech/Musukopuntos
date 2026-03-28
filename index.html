@@ -1,1 +1,1287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musuko Puntos · Registro V4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090909;
+      --bg-soft: #101010;
+      --card: rgba(255,255,255,0.035);
+      --card-strong: rgba(255,255,255,0.05);
+      --line: rgba(255,255,255,0.08);
+      --line-soft: rgba(231,131,51,0.12);
+      --text: #f7f4ef;
+      --muted: rgba(255,255,255,0.58);
+      --muted-2: rgba(255,255,255,0.38);
+      --accent: #e78333;
+      --accent-2: #bf6000;
+      --ok: #4fd18b;
+      --err: #ff7868;
+      --warn: #f5b74f;
+      --shadow: 0 24px 80px rgba(0,0,0,0.42);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
 
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    body {
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(231,131,51,0.12), transparent 35%),
+        linear-gradient(180deg, #090909 0%, #0b0b0b 100%);
+      overflow-x: hidden;
+    }
+
+    .bg-pattern, .bg-lines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-pattern {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(231,131,51,0.12), transparent 28%),
+        radial-gradient(circle at 80% 15%, rgba(231,131,51,0.08), transparent 24%),
+        radial-gradient(circle at 50% 70%, rgba(231,131,51,0.05), transparent 25%);
+      filter: blur(10px);
+    }
+    .bg-lines {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,0.2) 70%, transparent 100%);
+      opacity: 0.25;
+    }
+
+    .page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5,5,5,0.78);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.25s ease;
+    }
+    .page-loader.visible { opacity: 1; visibility: visible; }
+    .loader-card {
+      width: min(92vw, 360px);
+      border-radius: 24px;
+      padding: 28px 24px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(22,22,22,0.98), rgba(12,12,12,0.98));
+      border: 1px solid rgba(231,131,51,0.18);
+      box-shadow: var(--shadow);
+    }
+    .loader-logo { height: 54px; width: auto; margin-bottom: 16px; }
+    .loader-spinner {
+      width: 36px;
+      height: 36px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--accent);
+      animation: spin 0.9s linear infinite;
+    }
+    .loader-title { font-size: 21px; font-weight: 700; margin-bottom: 8px; }
+    .loader-text { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 44px 20px 28px;
+      text-align: center;
+    }
+    .brand-wrap {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .logo-wrap {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid rgba(231,131,51,0.24);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    }
+    .logo-img { height: 54px; width: auto; }
+    .badge {
+      display: inline-block;
+      border: 1px solid rgba(231,131,51,0.18);
+      color: var(--accent);
+      padding: 6px 16px;
+      border-radius: 999px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .title {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(34px, 5vw, 58px);
+      font-weight: 400;
+      line-height: 1.06;
+      letter-spacing: -0.6px;
+    }
+    .title span { color: var(--accent); font-weight: 600; }
+    .subtitle {
+      max-width: 620px;
+      margin: 14px auto 0;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .info-section {
+      position: relative;
+      z-index: 10;
+      max-width: 1060px;
+      margin: 0 auto 38px;
+      padding: 0 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--line-soft);
+      border-radius: 20px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .info-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(231,131,51,0.04), transparent 60%);
+      pointer-events: none;
+    }
+    .info-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 56px;
+      line-height: 1;
+      color: rgba(231,131,51,0.22);
+      margin-bottom: 10px;
+    }
+    .info-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2.2px;
+      margin-bottom: 10px;
+    }
+    .info-text {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-label {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    .form-shell {
+      position: relative;
+      z-index: 10;
+      max-width: 1000px;
+      margin: 0 auto 36px;
+      padding: 0 20px;
+    }
+    .form-card, .success-card {
+      background: linear-gradient(180deg, rgba(19,19,19,0.96), rgba(12,12,12,0.98));
+      border: 1px solid rgba(231,131,51,0.12);
+      border-radius: var(--radius-xl);
+      padding: 34px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .form-card {
+      display: block;
+    }
+    .success-card {
+      display: none;
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .success-card.visible { display: block; }
+    .success-icon {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      font-weight: 700;
+      color: #0d2618;
+      background: linear-gradient(180deg, #74ffb7, #3ecc85);
+      box-shadow: 0 16px 38px rgba(31, 131, 74, 0.28);
+    }
+    .form-title, .success-title {
+      margin: 0 0 10px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px;
+      line-height: 1.05;
+      font-weight: 500;
+    }
+    .form-sub, .success-sub {
+      margin: 0 0 26px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 9px;
+      font-weight: 700;
+    }
+    .form-label span { color: var(--accent); }
+    .form-input, select.form-input, textarea.form-input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 15px 16px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .sr-native-select {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .custom-select {
+      position: relative;
+    }
+    .custom-select-trigger {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 15px 44px 15px 16px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+    .custom-select-trigger:hover {
+      border-color: rgba(231,131,51,0.32);
+    }
+    .custom-select-trigger:focus-visible,
+    .custom-select.open .custom-select-trigger {
+      border-color: rgba(231,131,51,0.52);
+      box-shadow: 0 0 0 4px rgba(231,131,51,0.12);
+      transform: translateY(-1px);
+    }
+    .custom-select-trigger.error {
+      border-color: rgba(255,120,104,0.6);
+      box-shadow: 0 0 0 4px rgba(255,120,104,0.08);
+    }
+    .custom-select-trigger.ok {
+      border-color: rgba(79,209,139,0.45);
+    }
+    .custom-select-placeholder {
+      color: rgba(255,255,255,0.42);
+    }
+    .custom-select-caret {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,0.76);
+      font-size: 12px;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+    .custom-select.open .custom-select-caret {
+      transform: translateY(-50%) rotate(180deg);
+    }
+    .custom-select-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: none;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid rgba(231,131,51,0.16);
+      background: linear-gradient(180deg, rgba(18,18,18,0.99), rgba(10,10,10,0.99));
+      box-shadow: 0 24px 50px rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+    }
+    .custom-select.open .custom-select-menu {
+      display: block;
+    }
+    .custom-select-option {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      padding: 14px 16px;
+      font: inherit;
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+    .custom-select-option:last-child {
+      border-bottom: none;
+    }
+    .custom-select-option:hover,
+    .custom-select-option:focus-visible {
+      background: rgba(231,131,51,0.10);
+      outline: none;
+    }
+    .custom-select-option.selected {
+      background: rgba(231,131,51,0.16);
+      color: #fff2e7;
+    }
+    .form-input:focus {
+      border-color: rgba(231,131,51,0.52);
+      box-shadow: 0 0 0 4px rgba(231,131,51,0.12);
+      transform: translateY(-1px);
+    }
+    .form-input.error {
+      border-color: rgba(255,120,104,0.6);
+      box-shadow: 0 0 0 4px rgba(255,120,104,0.08);
+    }
+    .form-input.ok {
+      border-color: rgba(79,209,139,0.45);
+    }
+    .field-error {
+      display: none;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--err);
+    }
+    .field-error.visible { display: block; }
+
+    .helper-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted-2);
+      line-height: 1.6;
+      flex-wrap: wrap;
+    }
+    .helper-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(231,131,51,0.12);
+      background: rgba(231,131,51,0.05);
+      color: rgba(255,255,255,0.72);
+      font-size: 12px;
+    }
+
+    .terms-box {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.025);
+    }
+    .terms-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .terms-check {
+      margin-top: 3px;
+      accent-color: var(--accent);
+      transform: scale(1.12);
+    }
+    .terms-text {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .terms-link {
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .terms-links-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+    .terms-links-row a {
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      padding-bottom: 2px;
+    }
+
+    .alert-error, .alert-ok, .alert-warn {
+      display: none;
+      margin-top: 18px;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .alert-error.visible, .alert-ok.visible, .alert-warn.visible { display: block; }
+    .alert-error {
+      background: rgba(255,120,104,0.08);
+      border: 1px solid rgba(255,120,104,0.2);
+      color: #ffb4aa;
+    }
+    .alert-ok {
+      background: rgba(79,209,139,0.08);
+      border: 1px solid rgba(79,209,139,0.2);
+      color: #b6ffd6;
+    }
+    .alert-warn {
+      background: rgba(245,183,79,0.08);
+      border: 1px solid rgba(245,183,79,0.2);
+      color: #ffd897;
+    }
+
+    .btn-submit, .btn-account {
+      width: 100%;
+      margin-top: 24px;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      background: linear-gradient(180deg, #f09248, #e78333);
+      color: white;
+      box-shadow: 0 14px 30px rgba(231,131,51,0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 58px;
+    }
+    .btn-submit:hover, .btn-account:hover { transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.72; cursor: not-allowed; transform: none; }
+    .btn-loader {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-loader.active { display: inline-flex; }
+    .btn-spinner {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.28);
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .faq-section {
+      position: relative;
+      z-index: 10;
+      max-width: 1000px;
+      margin: 0 auto 54px;
+      padding: 0 20px 20px;
+    }
+    .faq-shell {
+      border-radius: 24px;
+      border: 1px solid rgba(231,131,51,0.1);
+      background: rgba(255,255,255,0.02);
+      padding: 28px;
+    }
+    .faq-item + .faq-item { margin-top: 10px; }
+    .faq-q {
+      width: 100%;
+      border: none;
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      transition: border-color 0.18s ease, background 0.18s ease;
+      border: 1px solid transparent;
+    }
+    .faq-q:hover { border-color: rgba(231,131,51,0.18); background: rgba(231,131,51,0.04); }
+    .faq-arrow { transition: transform 0.18s ease; color: var(--accent); }
+    .faq-arrow.open { transform: rotate(180deg); }
+    .faq-a {
+      display: none;
+      padding: 12px 4px 4px 6px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+    .faq-a.open { display: block; }
+
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 0 20px 42px;
+      text-align: center;
+      color: rgba(255,255,255,0.26);
+      font-size: 12px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7,7,7,0.76);
+      backdrop-filter: blur(8px);
+      padding: 18px;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal {
+      width: min(92vw, 760px);
+      max-height: min(82vh, 760px);
+      overflow: auto;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(20,20,20,0.99), rgba(10,10,10,0.99));
+      border: 1px solid rgba(231,131,51,0.14);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .modal-title {
+      margin: 0 0 16px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 500;
+    }
+    .modal-body {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+    .modal-body h4 {
+      color: var(--text);
+      margin: 18px 0 6px;
+      font-size: 14px;
+    }
+    .modal-close {
+      margin-top: 18px;
+      width: 100%;
+      border: none;
+      background: rgba(255,255,255,0.06);
+      color: white;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 760px) {
+      .form-card, .success-card, .faq-shell { padding: 24px 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .title { font-size: clamp(32px, 10vw, 46px); }
+      .form-title, .success-title { font-size: 34px; }
+      .helper-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="bg-lines"></div>
+
+  <div class="page-loader visible" id="page-loader" aria-hidden="false">
+    <div class="loader-card">
+      <img class="loader-logo" src="https://i.postimg.cc/dV2FdDn6/Diseno-sin-titulo-3-fotor-20250814173243.png" alt="Musuko" onerror="this.style.display='none'">
+      <div class="loader-spinner"></div>
+      <div class="loader-title" id="loader-title">Cargando registro</div>
+      <div class="loader-text" id="loader-text">Estamos sincronizando la configuración y los locales disponibles.</div>
+    </div>
+  </div>
+
+  <header class="header">
+    <div class="brand-wrap">
+      <div class="logo-wrap">
+        <img src="https://i.postimg.cc/dV2FdDn6/Diseno-sin-titulo-3-fotor-20250814173243.png" alt="Musuko" class="logo-img" onerror="this.style.display='none'">
+      </div>
+      <div class="badge" id="program-badge">Musuko Puntos</div>
+    </div>
+    <h1 class="title">Regístrate y <span>empieza a ganar</span></h1>
+    <p class="subtitle">Completa tus datos para crear tu cuenta, empezar a acumular puntos en cada visita y canjear premios cuando alcances tu meta.</p>
+  </header>
+
+  <section class="info-section">
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-num">01</div>
+        <div class="info-title">Únete al club</div>
+        <div class="info-text">Crea tu cuenta en <span id="program-name-inline">Musuko Puntos</span>. El registro es gratis, toma menos de un minuto y te deja listo para operar en todos los locales activos.</div>
+      </div>
+      <div class="info-card">
+        <div class="info-num">02</div>
+        <div class="info-title">Gana puntos</div>
+        <div class="info-text" id="earn-copy">Acumula puntos cada vez que compras. El cajero registra tu compra y tus puntos se suman automáticamente.</div>
+      </div>
+      <div class="info-card">
+        <div class="info-num">03</div>
+        <div class="info-title">Canjea premios</div>
+        <div class="info-text" id="redeem-copy">Cuando llegues a la cantidad de puntos necesaria, podrás canjear premios disponibles directamente desde caja.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-shell">
+    <div class="form-card" id="form-card">
+      <div class="section-label">Registro V4</div>
+      <h2 class="form-title">Crear mi cuenta</h2>
+      <p class="form-sub">Todos los campos son obligatorios excepto el teléfono. Tus datos se usarán solo para operar el programa de fidelización.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre <span>*</span></label>
+          <input id="nombres" class="form-input" type="text" placeholder="Juan" autocomplete="given-name" oninput="onlyLetters(this)" onblur="validateField('nombres')">
+          <div class="field-error" id="err-nombres">Ingresa un nombre válido</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Apellido <span>*</span></label>
+          <input id="apellidos" class="form-input" type="text" placeholder="Pérez" autocomplete="family-name" oninput="onlyLetters(this)" onblur="validateField('apellidos')">
+          <div class="field-error" id="err-apellidos">Ingresa un apellido válido</div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">RUT <span>*</span></label>
+          <input id="rut" class="form-input" type="text" placeholder="12.345.678-9" maxlength="12" autocomplete="off" oninput="formatRut(this)" onblur="validateField('rut')">
+          <div class="field-error" id="err-rut">Ingresa un RUT válido</div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Correo electrónico <span>*</span></label>
+          <input id="correo" class="form-input" type="email" placeholder="correo@ejemplo.com" autocomplete="email" onblur="validateField('correo')">
+          <div class="field-error" id="err-correo">Ingresa un correo válido</div>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Teléfono <span style="color:rgba(255,255,255,0.3)">(opcional)</span></label>
+          <input id="telefono" class="form-input" type="tel" placeholder="+56912345678" maxlength="12" autocomplete="tel" oninput="formatPhone(this)" onblur="validateField('telefono')">
+          <div class="field-error" id="err-telefono">Formato válido: +56912345678</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de nacimiento <span>*</span></label>
+          <input id="nacimiento" class="form-input" type="date" autocomplete="bday" onblur="validateField('nacimiento')">
+          <div class="field-error" id="err-nacimiento">Selecciona una fecha válida</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Local habitual <span>*</span></label>
+          <div class="custom-select" id="local-select-wrap">
+            <select id="localHabitualId" class="form-input sr-native-select" tabindex="-1" aria-hidden="true">
+              <option value="">Cargando locales…</option>
+            </select>
+            <button type="button" class="custom-select-trigger" id="local-select-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleLocalDropdown()">
+              <span id="local-select-text" class="custom-select-placeholder">Selecciona un local</span>
+              <span class="custom-select-caret">▾</span>
+            </button>
+            <div class="custom-select-menu" id="local-select-menu" role="listbox" aria-labelledby="local-select-trigger"></div>
+          </div>
+          <div class="field-error" id="err-localHabitualId">Selecciona un local</div>
+        </div>
+      </div>
+
+      <div class="helper-row">
+        <div id="local-helper">Estamos sincronizando los locales disponibles.</div>
+        <div class="helper-pill" id="points-pill">Tasa actual: $1.000 CLP = 1 punto</div>
+      </div>
+
+      <div class="terms-box">
+        <div class="terms-row">
+          <input id="terminos" class="terms-check" type="checkbox">
+          <p class="terms-text">
+            He leído y acepto los <button class="terms-link" type="button" onclick="openTerms()">Términos y Condiciones</button>
+            del programa. Autorizo el uso de mis datos para gestionar mi participación y mi historial de puntos.
+          </p>
+        </div>
+        <div class="terms-links-row" id="terms-links-row"></div>
+      </div>
+
+      <div class="alert-error" id="alert-error"></div>
+      <div class="alert-warn" id="alert-warn"></div>
+      <div class="alert-ok" id="alert-ok"></div>
+
+      <button class="btn-submit" id="btn-submit" type="button" onclick="submitForm()">
+        <span id="btn-text">Crear mi cuenta</span>
+        <span class="btn-loader" id="btn-loader"><span class="btn-spinner"></span><span id="btn-state">Enviando…</span></span>
+      </button>
+    </div>
+
+    <div class="success-card" id="success-card">
+      <div class="success-icon">✓</div>
+      <div class="section-label">Cuenta creada</div>
+      <h2 class="success-title">¡Bienvenido a <span id="success-program">Musuko Puntos</span>!</h2>
+      <p class="success-sub" id="success-copy">Tu cuenta fue creada correctamente. Ya puedes ingresar a tu cuenta para revisar tu saldo, tus beneficios y tu historial.</p>
+      <button class="btn-account" id="btn-go-account" type="button" onclick="goToAccount()">Ver mi cuenta</button>
+      <p style="font-size:12px;color:rgba(255,255,255,0.32);margin-top:14px;line-height:1.6">
+        Usa tu RUT y tu fecha de nacimiento para ingresar a tu cuenta. Muestra tu QR al cajero en tu próxima visita para empezar a acumular puntos.
+      </p>
+    </div>
+  </section>
+
+  <section class="faq-section">
+    <div class="faq-shell">
+      <div class="section-label">Preguntas frecuentes</div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" onclick="toggleFaq(this)">¿Cómo acumulo puntos?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a">Cada vez que visitas un local activo, indícale al cajero que eres miembro del programa. El sistema registrará tu compra y acreditará tus puntos según la tasa configurada: el valor define cuántos pesos CLP equivalen a 1 punto.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" onclick="toggleFaq(this)">¿En qué locales puedo usar mi cuenta?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a" id="faq-locales">Tus puntos están disponibles en todos los locales activos del programa.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" onclick="toggleFaq(this)">¿Cómo veo mis puntos?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a" id="faq-cuenta">Después del registro, podrás ingresar al panel cliente con tu RUT y tu fecha de nacimiento para ver saldo, historial y premios.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" onclick="toggleFaq(this)">¿Puedo canjear parcialmente?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a">No. Los premios se canjean con la cantidad requerida de puntos y están sujetos a disponibilidad.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">© 2026 Musuko Puntos · Registro V4</footer>
+
+  <div class="modal-overlay" id="terms-modal" onclick="closeTermsOverlay(event)">
+    <div class="modal">
+      <div class="section-label">Documento</div>
+      <h3 class="modal-title">Términos y Condiciones</h3>
+      <div class="modal-body" id="terms-body">
+1. Participación
+El registro en el programa es voluntario y gratuito.
+
+2. Acumulación de puntos
+Los puntos se acreditan cuando una compra válida es registrada por caja.
+
+3. Uso de datos
+Los datos proporcionados se utilizan para operar la cuenta del cliente, el saldo de puntos y las comunicaciones del programa.
+
+4. Canje
+Los premios se canjean únicamente con puntos disponibles y pueden variar según catálogo y stock.
+
+5. Cambios
+La marca podrá actualizar las condiciones del programa cuando corresponda.
+      </div>
+      <button class="modal-close" type="button" onclick="closeTerms()">Entendido</button>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyO9ihZqACT13g8Sk999Ba-uv4elZMYJNtX2woCHlSD_yOddgS1qSVugJ-RqMaMDAY/exec';
+    const ACTIONS = {
+      PUBLIC_BOOTSTRAP: 'v4.public.bootstrap',
+      CREATE_CUSTOMER: 'v4.customers.create'
+    };
+    const TERMS_VERSION = 'v4-2026-03-27';
+    const DEFAULTS = {
+      programa: 'Musuko Puntos',
+      tasaPuntos: 1,
+      puntosMinimosCanje: 100,
+      clienteUrl: '',
+      locales: [
+        { id: 'LOC-001', nombre: 'Portugal', activo: true },
+        { id: 'LOC-002', nombre: 'Providencia', activo: true },
+        { id: 'LOC-003', nombre: 'Ñuñoa', activo: true }
+      ]
+    };
+
+    let APP_CONFIG = { ...DEFAULTS };
+    let PAGE_BUSY = false;
+
+    const $ = id => document.getElementById(id);
+
+    function showPageLoader(show, title, text) {
+      const el = $('page-loader');
+      $('loader-title').textContent = title || 'Cargando';
+      $('loader-text').textContent = text || 'Espera un momento.';
+      el.classList.toggle('visible', !!show);
+      el.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+
+    function onlyLetters(input) {
+      input.value = input.value.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s'-]/g, '');
+    }
+
+    function formatRut(input) {
+      let val = String(input.value || '').replace(/[^0-9kK]/g, '').toUpperCase();
+      if (!val) { input.value = ''; return; }
+      const dv = val.slice(-1);
+      let body = val.slice(0, -1);
+      if (!body) { input.value = dv; return; }
+      let out = '';
+      let count = 0;
+      for (let i = body.length - 1; i >= 0; i--) {
+        if (count > 0 && count % 3 === 0) out = '.' + out;
+        out = body[i] + out;
+        count++;
+      }
+      input.value = out + '-' + dv;
+    }
+
+    function normalizeRut(rut) {
+      const clean = String(rut || '').replace(/\./g, '').replace(/-/g, '').toUpperCase();
+      if (clean.length < 2) return '';
+      return clean.slice(0, -1) + '-' + clean.slice(-1);
+    }
+
+    function validateRut(rut) {
+      const clean = String(rut || '').replace(/\./g, '').replace(/-/g, '').toUpperCase();
+      if (clean.length < 8) return false;
+      const body = clean.slice(0, -1);
+      const dv = clean.slice(-1);
+      if (!/^\d+$/.test(body)) return false;
+      let sum = 0;
+      let mult = 2;
+      for (let i = body.length - 1; i >= 0; i--) {
+        sum += parseInt(body[i], 10) * mult;
+        mult = mult < 7 ? mult + 1 : 2;
+      }
+      const calc = 11 - (sum % 11);
+      const expected = calc === 11 ? '0' : calc === 10 ? 'K' : String(calc);
+      return dv === expected;
+    }
+
+    function formatPhone(input) {
+      let val = String(input.value || '').replace(/[^0-9+]/g, '');
+      if (!val) { input.value = ''; return; }
+      if (!val.startsWith('+')) {
+        if (val.startsWith('56')) val = '+' + val;
+        else if (val.startsWith('9')) val = '+569' + val.slice(1);
+        else val = '+56' + val;
+      }
+      if (val.length > 12) val = val.slice(0, 12);
+      input.value = val;
+    }
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+    }
+
+    function validateField(id) {
+      const input = $(id);
+      const err = $('err-' + id);
+      if (!input) return true;
+      const raw = String(input.value || '').trim();
+      let valid = true;
+
+      switch (id) {
+        case 'nombres':
+        case 'apellidos':
+          valid = raw.length >= 2 && /^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s'-]+$/.test(raw);
+          break;
+        case 'rut':
+          valid = validateRut(raw);
+          break;
+        case 'correo':
+          valid = validateEmail(raw);
+          break;
+        case 'telefono':
+          valid = raw === '' || /^\+569\d{8}$/.test(raw);
+          break;
+        case 'nacimiento': {
+          if (!raw) { valid = false; break; }
+          const d = new Date(raw + 'T00:00:00');
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          valid = !Number.isNaN(d.getTime()) && d <= today;
+          break;
+        }
+        case 'localHabitualId':
+          valid = raw !== '';
+          $('local-select-trigger').dataset.touched = 'true';
+          break;
+      }
+
+      if (err) err.classList.toggle('visible', !valid);
+      if (id === 'localHabitualId') {
+        syncLocalTriggerState();
+      } else {
+        input.classList.toggle('error', raw !== '' && !valid);
+        input.classList.toggle('ok', raw !== '' && valid);
+      }
+      return valid;
+    }
+
+    function validateAll() {
+      clearAlerts();
+      const fields = ['nombres', 'apellidos', 'rut', 'correo', 'nacimiento', 'localHabitualId'];
+      let ok = true;
+      fields.forEach(id => { if (!validateField(id)) ok = false; });
+      if (!validateField('telefono')) ok = false;
+      if (!$('terminos').checked) {
+        showAlert('error', 'Debes aceptar los Términos y Condiciones para continuar.');
+        ok = false;
+      }
+      return ok;
+    }
+
+    function showAlert(type, msg) {
+      ['error','warn','ok'].forEach(k => $('alert-' + k).classList.remove('visible'));
+      const el = $('alert-' + type);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+
+    function clearAlerts() {
+      ['error','warn','ok'].forEach(k => $('alert-' + k).classList.remove('visible'));
+    }
+
+    function setSubmitBusy(busy, stateText) {
+      PAGE_BUSY = !!busy;
+      const btn = $('btn-submit');
+      const txt = $('btn-text');
+      const loader = $('btn-loader');
+      if (stateText) $('btn-state').textContent = stateText;
+      btn.disabled = !!busy;
+      txt.style.display = busy ? 'none' : '';
+      loader.classList.toggle('active', !!busy);
+      document.querySelectorAll('.form-input, .terms-check').forEach(el => el.disabled = !!busy);
+      $('local-select-trigger').disabled = !!busy;
+      if (busy) closeLocalDropdown();
+    }
+
+    async function fetchJson(url, options = {}, timeoutMs = 20000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const method = String(options.method || 'GET').toUpperCase();
+        const headers = Object.assign({}, options.headers || {});
+        const fetchOptions = {
+          method,
+          signal: controller.signal,
+          cache: 'no-store'
+        };
+        if (method !== 'GET' && method !== 'HEAD') {
+          fetchOptions.body = options.body;
+          if (headers['Content-Type']) delete headers['Content-Type'];
+        }
+        if (Object.keys(headers).length) fetchOptions.headers = headers;
+        const res = await fetch(url, fetchOptions);
+        const raw = await res.text();
+        let json = {};
+        try {
+          json = raw ? JSON.parse(raw) : {};
+        } catch (parseErr) {
+          throw new Error('Respuesta inválida del servidor.');
+        }
+        if (!res.ok) {
+          const msg = json && json.error && json.error.message ? json.error.message : (json && json.error) || 'No se pudo completar la solicitud.';
+          throw new Error(msg);
+        }
+        return json;
+      } catch (err) {
+        if (err && err.name === 'AbortError') throw new Error('La solicitud tardó demasiado en responder.');
+        if (/Failed to fetch|NetworkError|Load failed/i.test(String(err && err.message || ''))) {
+          throw new Error('No se pudo conectar con el backend V4. Revisa la implementación del Web App y que la URL /exec esté activa.');
+        }
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function api(action, payload = {}, method = 'POST') {
+      if (method === 'GET') {
+        const url = SCRIPT_URL + '?action=' + encodeURIComponent(action);
+        return fetchJson(url, { method: 'GET' }, 18000);
+      }
+      return fetchJson(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(Object.assign({ action }, payload))
+      }, 22000);
+    }
+
+    function closeLocalDropdown() {
+      $('local-select-wrap').classList.remove('open');
+      $('local-select-trigger').setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleLocalDropdown() {
+      const wrap = $('local-select-wrap');
+      const willOpen = !wrap.classList.contains('open');
+      closeLocalDropdown();
+      if (willOpen) {
+        wrap.classList.add('open');
+        $('local-select-trigger').setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    function syncLocalTriggerState() {
+      const select = $('localHabitualId');
+      const trigger = $('local-select-trigger');
+      const text = $('local-select-text');
+      const selected = select.options[select.selectedIndex];
+      const hasValue = !!select.value;
+      text.textContent = hasValue && selected ? selected.textContent : 'Selecciona un local';
+      text.classList.toggle('custom-select-placeholder', !hasValue);
+      trigger.classList.toggle('error', !hasValue && trigger.dataset.touched === 'true');
+      trigger.classList.toggle('ok', hasValue);
+      Array.from($('local-select-menu').querySelectorAll('.custom-select-option')).forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.value === select.value);
+      });
+    }
+
+    function chooseLocalOption(value) {
+      $('localHabitualId').value = value;
+      $('local-select-trigger').dataset.touched = 'true';
+      syncLocalTriggerState();
+      closeLocalDropdown();
+      validateField('localHabitualId');
+    }
+
+    function renderLocales(locales) {
+      const select = $('localHabitualId');
+      const menu = $('local-select-menu');
+      const trigger = $('local-select-trigger');
+      const active = (Array.isArray(locales) ? locales : []).filter(loc => loc && (loc.activo === true || loc.activo === 'si' || loc.activo === undefined));
+      const finalLocales = active.length ? active : DEFAULTS.locales;
+      select.innerHTML = '<option value="">Selecciona un local</option>';
+      menu.innerHTML = '';
+      finalLocales.forEach(loc => {
+        const opt = document.createElement('option');
+        opt.value = loc.id;
+        opt.textContent = loc.nombre;
+        select.appendChild(opt);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'custom-select-option';
+        btn.dataset.value = loc.id;
+        btn.textContent = loc.nombre;
+        btn.onclick = () => chooseLocalOption(loc.id);
+        menu.appendChild(btn);
+      });
+      select.value = '';
+      trigger.dataset.touched = 'false';
+      syncLocalTriggerState();
+      $('local-helper').textContent = active.length
+        ? 'Selecciona el local donde visitas con mayor frecuencia.'
+        : 'No fue posible cargar los locales. Se muestran locales base.';
+      $('faq-locales').textContent = 'Tus puntos están disponibles en todos los locales activos del programa: ' + finalLocales.map(x => x.nombre).join(', ') + '.';
+    }
+
+    function renderConfig(configPublica = {}, locales = [], urls = {}) {
+      APP_CONFIG = Object.assign({}, DEFAULTS, {
+        programa: String(configPublica.nombre_programa || DEFAULTS.programa),
+        tasaPuntos: Number(configPublica.tasa_puntos || DEFAULTS.tasaPuntos) || 1,
+        puntosMinimosCanje: Number(configPublica.puntos_minimos_canje || DEFAULTS.puntosMinimosCanje) || DEFAULTS.puntosMinimosCanje,
+        clienteUrl: String(urls.panelCliente || configPublica.url_panel_cliente || DEFAULTS.clienteUrl || '').trim(),
+        locales: Array.isArray(locales) ? locales : DEFAULTS.locales,
+        politicaUrl: String(urls.politicaPrivacidad || '').trim(),
+        terminosUrl: String(urls.terminos || '').trim()
+      });
+
+      $('program-badge').textContent = APP_CONFIG.programa;
+      $('program-name-inline').textContent = APP_CONFIG.programa;
+      $('success-program').textContent = APP_CONFIG.programa;
+      $('points-pill').textContent = `Tasa actual: $${Number(APP_CONFIG.tasaPuntos || 0).toLocaleString('es-CL')} CLP = 1 punto`;
+      $('earn-copy').textContent = `Acumula 1 punto por cada $${Number(APP_CONFIG.tasaPuntos || 0).toLocaleString('es-CL')} CLP gastados. El cajero registra tu compra y el sistema actualiza tu saldo automáticamente.`;
+      $('redeem-copy').textContent = `Cuando alcances la meta de puntos requerida, podrás canjear premios disponibles en caja. El mínimo base para operar canjes hoy es ${APP_CONFIG.puntosMinimosCanje.toLocaleString('es-CL')} puntos.`;
+      $('faq-cuenta').textContent = APP_CONFIG.clienteUrl
+        ? 'Después del registro, podrás ingresar al panel cliente con tu RUT y tu fecha de nacimiento para ver saldo, historial y premios.'
+        : 'Después del registro, podrás ingresar a tu cuenta con tu RUT y tu fecha de nacimiento una vez que la URL del panel cliente esté configurada.';
+
+      const linksRow = $('terms-links-row');
+      linksRow.innerHTML = '';
+      if (APP_CONFIG.terminosUrl) {
+        const a = document.createElement('a');
+        a.href = APP_CONFIG.terminosUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'Abrir términos en nueva pestaña';
+        linksRow.appendChild(a);
+      }
+      if (APP_CONFIG.politicaUrl) {
+        const a = document.createElement('a');
+        a.href = APP_CONFIG.politicaUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'Política de privacidad';
+        linksRow.appendChild(a);
+      }
+
+      renderLocales(APP_CONFIG.locales);
+      const birth = $('nacimiento');
+      const today = new Date();
+      birth.max = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
+    }
+
+    async function loadBootstrap() {
+      showPageLoader(true, 'Cargando registro', 'Estamos sincronizando la configuración y los locales disponibles.');
+      try {
+        const data = await api(ACTIONS.PUBLIC_BOOTSTRAP, {}, 'GET');
+        if (!data || !data.ok) throw new Error((data && data.error && data.error.message) || 'No se pudo cargar la configuración inicial.');
+        renderConfig(data.data.configPublica || {}, data.data.locales || [], data.data.urls || {});
+        clearAlerts();
+      } catch (err) {
+        renderConfig({}, DEFAULTS.locales, {});
+        showAlert('warn', err && err.message ? err.message : 'No se pudo cargar la configuración remota. Se usarán valores base para continuar.');
+      } finally {
+        showPageLoader(false);
+      }
+    }
+
+    async function submitForm() {
+      if (PAGE_BUSY) return;
+      if (!validateAll()) return;
+
+      const payload = {
+        nombres: $('nombres').value.trim(),
+        apellidos: $('apellidos').value.trim(),
+        rut: normalizeRut($('rut').value.trim()),
+        correo: $('correo').value.trim(),
+        telefono: $('telefono').value.trim(),
+        nacimiento: $('nacimiento').value,
+        localHabitualId: $('localHabitualId').value,
+        aceptaTerminos: $('terminos').checked,
+        aceptaTerminosVersion: TERMS_VERSION
+      };
+
+      setSubmitBusy(true, 'Creando tu cuenta…');
+      showPageLoader(true, 'Registrando cuenta', 'Estamos validando tus datos y creando tu cuenta.');
+      try {
+        const data = await api(ACTIONS.CREATE_CUSTOMER, payload, 'POST');
+        if (!data || !data.ok) {
+          const msg = data && data.error && data.error.message ? data.error.message : 'No se pudo crear la cuenta.';
+          throw new Error(msg);
+        }
+
+        $('form-card').style.display = 'none';
+        $('success-copy').textContent = data.data && Number(data.data.puntosBienvenidaAplicados || 0) > 0
+          ? `Tu cuenta fue creada correctamente y ya tienes ${Number(data.data.puntosBienvenidaAplicados).toLocaleString('es-CL')} punto(s) de bienvenida.`
+          : 'Tu cuenta fue creada correctamente. Ya puedes ingresar a tu cuenta para revisar tu saldo, tus beneficios y tu historial.';
+        $('success-card').classList.add('visible');
+        window.scrollTo({ top: $('success-card').offsetTop - 20, behavior: 'smooth' });
+      } catch (err) {
+        showAlert('error', err && err.message ? err.message : 'Error de conexión. Intenta nuevamente.');
+      } finally {
+        setSubmitBusy(false);
+        showPageLoader(false);
+      }
+    }
+
+    function goToAccount() {
+      if (APP_CONFIG.clienteUrl) {
+        window.location.href = APP_CONFIG.clienteUrl;
+        return;
+      }
+      showAlert('warn', 'La URL del panel cliente aún no está configurada en V4.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleFaq(button) {
+      const answer = button.nextElementSibling;
+      const arrow = button.querySelector('.faq-arrow');
+      answer.classList.toggle('open');
+      arrow.classList.toggle('open');
+    }
+
+    function openTerms() {
+      $('terms-modal').classList.add('visible');
+    }
+    function closeTerms() {
+      $('terms-modal').classList.remove('visible');
+      $('terminos').checked = true;
+    }
+    function closeTermsOverlay(event) {
+      if (event.target === $('terms-modal')) $('terms-modal').classList.remove('visible');
+    }
+
+    document.addEventListener('click', (event) => {
+      const wrap = $('local-select-wrap');
+      if (wrap && !wrap.contains(event.target)) closeLocalDropdown();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeLocalDropdown();
+    });
+
+    $('local-select-trigger').addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!$('local-select-wrap').contains(document.activeElement)) closeLocalDropdown();
+      }, 0);
+    });
+
+    window.addEventListener('load', loadBootstrap);
+    window.addEventListener('pageshow', () => showPageLoader(false));
+  </script>
+</body>
+</html>
